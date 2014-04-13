@@ -8,22 +8,20 @@ document.addEventListener("DOMContentLoaded", function() {
         chrome.storage.local.get(null, function(data) {
 
             var d2 = new Date().getTime();
-            console.log("till render", d2 - d1)
+            console.log("till render", d2 - d1);
 
             $("#list").render(arr, {
                 favicon: {
-                    src: function(params) {
+                    src: function() {
                         return "chrome://favicon/" + this.url;
                     }
                 },
                 elem: {
-                    href: function(params) {
+                    href: function() {
                         return this.url;
-                    }
-                },
-                thumbnail: {
-                    src: function(params) {
-                        return data[this.url];
+                    },
+                    style: function() {
+                        return "background-image: url(" + data[this.url] + ")";
                     }
                 }
             });
