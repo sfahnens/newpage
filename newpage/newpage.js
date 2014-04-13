@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", function() {
     chrome.topSites.get(function(arr) {
         chrome.storage.local.get(null, function(data) {
-
+            
             $("#list").render(arr, {
                 favicon: {
                     src: function(params) {
@@ -21,6 +21,25 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                 }
             });
+            
+            var colorThief = new ColorThief();
+            $(".favicon").on("load", function(e) {         
+                
+                var $this = $(this);
+                var color = colorThief.getColor($this[0]);
+                
+                
+                
+                var rgb = "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")"
+                var border = "2px solid " + rgb;
+                
+                $this.parent().siblings(".title").css({"border-bottom": border});
+                
+               console.log( $this.parent().css("border"))
+                
+            });
+            
+
             $(".elem").on("click", function(a) {
                 chrome.tabs.captureVisibleTab(function(dataUrl) {
                     console.log(dataUrl);
@@ -40,8 +59,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
             });
-
-
         });
     });
 
