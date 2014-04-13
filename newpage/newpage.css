@@ -6,8 +6,12 @@ a {
     text-decoration: none;
 }
 
-list {
-
+#list {
+    
+    /*margin: 0px auto;
+    max-width: 1000px;*/
+    
+    
 }
 
 .elem {
@@ -16,6 +20,8 @@ list {
     text-decoration: none;
     display: block;
 
+    /*float:left;
+    margin: 4px;*/
     margin: 4px auto;
 
     background-color: #f5f5f5;
@@ -23,6 +29,7 @@ list {
     
     border-radius: 2px;
     border: 1px solid lightgray;
+
 }
 
 .title {
@@ -38,6 +45,8 @@ list {
     width: 400px;
     
     padding: 0px 5px;
+
+    border-bottom: 2px solid lightgrey;
 }
 
 .favicon {
@@ -57,4 +66,9 @@ list {
     text-align: right;
     display: block;
     padding-right: 5px;
+}
+
+.thumbnail {
+    float:right;
+    position:absolute;
 }

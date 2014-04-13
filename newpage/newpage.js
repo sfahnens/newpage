@@ -1,8 +1,14 @@
 
 
 document.addEventListener("DOMContentLoaded", function() {
+
+    var d1 = new Date().getTime();
+
     chrome.topSites.get(function(arr) {
         chrome.storage.local.get(null, function(data) {
+
+            var d2 = new Date().getTime();
+            console.log("till render", d2 - d1)
 
             $("#list").render(arr, {
                 favicon: {
@@ -22,41 +28,45 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             });
 
+            var d3 = new Date().getTime();
+            console.log("post render", d3 - d2)
+
             var ct = new ColorThief();
-            $(".favicon").on("load", function(e) {
+            $(".favicon").on("load", function() {
 
-                var $this = $(this);
-                var color = new RainbowColor(ct.getColor($this[0]), 'rgb');
+                var _this = this
+
+                setTimeout(function() {
+
+                    var $this = $(_this);
+                    var color = new RainbowColor(ct.getColor($this[0]), 'rgb');
+                    var textColor = new RainbowColor('#FFFFFF', 'hex').blend(color, 0.20);
 
 
-                var textColor = new RainbowColor('#FFFFFF', 'hex').blend(color, 0.20);
 
+                    $this.parent()
+                            .siblings(".title")
+                            .css({
+                                "border-bottom": "2px solid " + color.get('hex')
+                            });
 
-                $this.parent()
-                        .siblings(".title")
-                        .css({
-                            "border-bottom": "2px solid " + color.get('hex')
+                    $this.parents(".elem").hover(function() {
+
+                        $(this).css({
+                            "box-shadow": "0px 0px 2px 2px " + textColor.get('hex')
                         });
 
-                $this.parents(".elem").hover(function() {
+                        $(".title", _this).css({
+                            "text-shadow": "0px 0px 1px" + textColor.get('hex')
+                        });
 
-                    $(this).css({
-                        "box-shadow": "0px 0px 2px 2px " + textColor.get('hex')
-                    });
+                    }, function() {
+                        $(this).css({"box-shadow": "none"});
+                        $(".title", _this).css({"text-shadow": "none"});
+                    })
 
-                    $(".title", this).css({
-                        "text-shadow": "0px 0px 1px" + textColor.get('hex')
-                    });
-
-                }, function() {
-                    $(this).css({"box-shadow": "none"});
-                    $(".title", this).css({"text-shadow": "none"});
-                })
-
-
-                $this.parent()
-                        .parent()
-
+                    console.log("load", new Date().getTime() - d4)
+                }, 0);
             });
 
 
@@ -79,6 +89,9 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
                 });
             });
+
+            var d4 = new Date().getTime();
+            console.log("post setup", d4 - d3)
         });
     });
 

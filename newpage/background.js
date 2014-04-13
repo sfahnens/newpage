@@ -18,27 +18,14 @@ function queryScreenshot(currentTab, url) {
 
         // wait some time to settle things
         setTimeout(function() {
-            chrome.tabs.get(tabId, function(tab) {
+            chrome.tabs.captureVisibleTab(function(dataUrl) {
+                console.log(url);
 
-                // location sanity check 
-                var regex = /^https?:\/\/(.*?)\//;
-                var expected = regex.exec(url)[1];
-                var actual = regex.exec(tab.url)[1];
+                var o = {};
+                o[url] = dataUrl;
 
-                // we were redirected --> abort
-                if (actual.indexOf(expected) === -1) {
-                    return;
-                }
-
-                chrome.tabs.captureVisibleTab(function(dataUrl) {
-                    console.log(url);
-                    
-                    var o = {};
-                    o[url] = dataUrl;
-                    
-                    chrome.storage.local.set(o, function() {
-                        console.log("screenshot saved");
-                    });
+                chrome.storage.local.set(o, function() {
+                    console.log("screenshot saved");
                 });
             });
         }, 1000);
