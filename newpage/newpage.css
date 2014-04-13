@@ -1,0 +1,46 @@
+* {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+}
+
+list {
+    
+}
+
+.elem {
+    border: 1px solid lightgrey;
+
+    overflow: elipsis;
+    width: 450px;
+
+    text-decoration: none;
+    display: block;
+    
+    margin: 2px auto;
+
+}
+
+.title {
+    font-size: larger;
+    color: black;
+
+    display: inline-block;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre;
+    unicode-bidi: embed;
+    width: 400px;
+}
+
+.favicon {
+    margin: 1px;
+}
+
+.url {
+    font-size: smaller;
+    color: darkgrey;
+}

@@ -1,0 +1,11 @@
+{
+  "name": "newpage",
+    "description": "Minimalistic New Tab Page",
+  "version": "0.1",
+  "main": "newpage.html",
+  "dependencies": {
+    "jquery": "2.1.0",
+    "transparency": "0.9.14",
+    "color-thief": "v2.0"
+  }
+}

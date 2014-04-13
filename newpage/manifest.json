@@ -1,17 +1,25 @@
+
 {
-	"name" : "newpage",
-	"version" : "0.1",
-	"manifest_version": 2,
-	"description" : "Minimalistic New Tab Page",
-
-	"permissions" : [
-
-	],
-	"chrome_url_overrides" :
-	{
-		"newtab" : "newpage.html"
-	},
-	"web_accessible_resources": [
-		"newpage.html"
-	]
+    "name": "newpage",
+    "version": "0.1",
+    "manifest_version": 2,
+    "description": "Minimalistic New Tab Page",
+    "permissions": [
+        "topSites",
+        "chrome://favicon/",
+        "<all_urls>",
+        "tabs",
+        "storage",
+        "unlimitedStorage"
+    ],
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "chrome_url_overrides":
+            {
+                "newtab": "newpage.html"
+            },
+    "web_accessible_resources": [
+        "newpage.html"
+    ]
 }
