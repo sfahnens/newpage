@@ -7,6 +7,7 @@
     "jquery": "2.1.0",
     "transparency": "0.9.14",
     "color-thief": "v2.0",
-    "RainbowColor": "master"
+    "RainbowColor": "master",
+    "html2canvas": "0.4.1"
   }
 }

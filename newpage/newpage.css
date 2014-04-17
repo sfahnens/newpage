@@ -3,8 +3,8 @@
 }
 
 .elem {
-    width: 450px;
-    height: 69px;
+    width: 420px;
+    height: 75px;
 
     text-decoration: none;
     display: block;
@@ -28,7 +28,7 @@
     text-overflow: ellipsis;
     white-space: pre;
     unicode-bidi: embed;
-    width: 400px;
+    width: 375px;
 
     padding: 0px 5px;
 
@@ -56,7 +56,7 @@
 }
 
 /* one column */
-@media (max-width: 980px) {
+@media (max-width: 910px) {
     .elem {
         margin: 4px auto;
     }
@@ -64,8 +64,8 @@
 }
 
 /* two columns */
-@media (min-width: 980px) {
     
+@media (min-width: 910px) {
     body {
         margin-top: 25px;
     }
