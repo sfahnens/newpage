@@ -1,6 +1,6 @@
 
 function queryScreenshot(currentTab, url) {
-    console.log("query screenshot", url);
+    console.log("query screenshot", currentTab.id, url);
 
     var _this = this;
 
@@ -20,35 +20,55 @@ function queryScreenshot(currentTab, url) {
 
         // wait some time to settle things
         setTimeout(function() {
+
             chrome.tabs.captureVisibleTab(function(dataUrl) {
-                console.log(url);
+                chrome.tabs.query({active: true, highlighted: true, windowId: currentTab.windowId}, function(tabs) {
 
-                var image = new Image();
-                image.src = dataUrl;
+                    if (tabs.length !== 1) {
+                        console.log("something weird happened, abort");
+                        return;
+                    }
 
-                image.onload = function() {
+                    if (tabs[0].id !== currentTab.id) {
+                        console.log("user switched tab, abort");
+                        return
+                    }
+                    
+                    if (tabs[0].url.lastIndexOf("chrome://", 0) === 0) {
+                        console.log("user went back to the new tabs page, abort");
+                        return;
+                    }
 
-                    var scale = 420 / this.width;
-                    var canvas = downScaleImage(this, scale);
+                    console.log(tabs)
 
-                    var clipped = clip(canvas, 420, 75);
 
-                    var o = {};
-                    o[url] = clipped.toDataURL();
+                    console.log(url);
 
-                    console.log(clipped);
+                    var image = new Image();
+                    image.src = dataUrl;
+
+                    image.onload = function() {
+
+                        var scale = 420 / this.width;
+                        var canvas = downScaleImage(this, scale);
+
+                        var clipped = clip(canvas, 420, 75);
+
+                        var o = {};
+                        o[url] = clipped.toDataURL();
+
+                        console.log(clipped);
 //                    console.log(context);
-                    console.log(dataUrl);
-                    console.log(o);
+                        console.log(dataUrl);
+                        console.log(o);
 
-                    chrome.storage.local.set(o, function() {
-                        console.log("screenshot saved");
-                    });
-                };
+                        chrome.storage.local.set(o, function() {
+                            console.log("screenshot saved");
+                        });
+                    };
+                });
             });
-        }, 1000);
-
-
+        }, 1000);  // setTimeout()
     };
 
     chrome.tabs.onUpdated.addListener(listener);
