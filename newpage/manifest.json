@@ -15,6 +15,8 @@
     "background": {
         "scripts": [
             "bower_components/jquery/dist/jquery.min.js",
+            "bower_components/RainbowColor/lib/rainbow.min.js",
+            "bower_components/color-thief/js/color-thief.js",
             "background.js"
             ]
     },

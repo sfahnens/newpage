@@ -79,7 +79,7 @@ function queryScreenshot(currentTab, url) {
          * url -> image object
          */
         loadImage: function(src) {
-            console.log(".. load screenshot");
+            console.log(".. load image");
             var load = $.Deferred();
 
             var image = new Image();
@@ -90,6 +90,9 @@ function queryScreenshot(currentTab, url) {
 
             return load;
         },
+        /*
+         * scale and clip a screenshot
+         */
         processScreenshot: function(image) {
             console.log(".. process screenshot");
 
@@ -101,9 +104,20 @@ function queryScreenshot(currentTab, url) {
                 screenshot: clipped.toDataURL()
             };
         },
-        processFavicon: function() {
+        /*
+         * get colors
+         */
+        processFavicon: function(image) {
             console.log(".. process favion");
-            return "favicon";
+            
+            var colorThief = new ColorThief();
+            var baseColor = new RainbowColor(colorThief.getColor(image), 'rgb');
+            var keyColor = new RainbowColor('#FFFFFF', 'hex').blend(color, 0.20);
+            
+            return {
+                baseColor: baseColor.get('hex'),
+                keyColor: keyColor.get('hex')
+            };
         },
         storeInfo: function(screenshot, favicon) {
             console.log(".. store Info")
