@@ -1,6 +1,6 @@
 
 function queryScreenshot(currentTab, url) {
-    if (url === 'undefined') {
+    if (typeof(url) === 'undefined') {
         return;
     }
 
@@ -100,13 +100,42 @@ function queryScreenshot(currentTab, url) {
          */
         processScreenshot: function(image) {
             console.log(".. process screenshot");
+            var process = $.Deferred();
 
             var scale = 420 / image.width;
             var canvas = downScaleImage(image, scale);
             var clipped = clip(canvas, 420, 75);
 
+            // clone the canvas to preserve an untouched copy
+            var cloned = document.createElement('canvas');
+            var context = cloned.getContext('2d');
+            cloned.width = clipped.width;
+            cloned.height = clipped.height;
+            context.drawImage(clipped, 0, 0);
+
+            Caman(clipped, function() {
+                //this.brightness(25);
+                //this.sepia(25);
+                
+                this.saturation(-25);
+                this.contrast(-15);
+                //this.exposure(25);
+                
+                this.render(function() {
+                    process.resolveWith(clipped, [cloned, clipped]);
+                });
+            });
+
+            return process;
+        },
+        /**
+         * prepare store dataformat
+         */
+        prepareStoreScreenshot: function(untouched, blended) {
+            console.log(".. prepare store screenshot");
             return {
-                screenshot: clipped.toDataURL()
+                screenshotUntouched: untouched.toDataURL(),
+                screenshotBlended: blended.toDataURL()
             };
         },
         /*
@@ -126,8 +155,6 @@ function queryScreenshot(currentTab, url) {
         },
         storeInfo: function(screenshot, favicon) {
             console.log(".. store Info")
-            console.log(screenshot, favicon)
-
             var payload = $.extend({}, screenshot, favicon)
 
             var o = {};
@@ -136,9 +163,7 @@ function queryScreenshot(currentTab, url) {
             chrome.storage.local.set(o, function() {
                 console.log("info stored");
             });
-
         }
-
     }
 
     worker.tabLoaded()
@@ -148,7 +173,8 @@ function queryScreenshot(currentTab, url) {
 
                 var processScreenshot = worker
                         .loadImage(screenshotUrl)
-                        .then(worker.processScreenshot);
+                        .then(worker.processScreenshot)
+                        .then(worker.prepareStoreScreenshot);
 
                 var processFavicon = worker
                         .loadImage("chrome://favicon/" + url)
