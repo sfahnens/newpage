@@ -13,7 +13,10 @@
         "unlimitedStorage"
     ],
     "background": {
-        "scripts": ["background.js"]
+        "scripts": [
+            "bower_components/jquery/dist/jquery.min.js",
+            "background.js"
+            ]
     },
     "chrome_url_overrides":
             {

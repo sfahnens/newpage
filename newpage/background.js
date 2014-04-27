@@ -2,27 +2,58 @@
 function queryScreenshot(currentTab, url) {
     console.log("query screenshot", currentTab.id, url);
 
-    var _this = this;
+    var worker = {
+        /*
+         * wait for tab complete event
+         */
+        _tabLoaded: null,
+        tabLoaded: function() {
+            worker._tabLoaded = $.Deferred(function() {
+                console.log(".. register tab loaded listener");
+                chrome.tabs.onUpdated.addListener(worker._tabLoadedListener);
+            });
+            return worker._tabLoaded;
+        },
+        _tabLoadedListener: function(tabId, changedProps) {
 
-    this.listener = function(tabId, changedProps) {
+            // handle only this tab
+            if (tabId !== currentTab.id) {
+                return;
+            }
 
-        // handle only this tab
-        if (tabId !== currentTab.id) {
-            return;
-        }
+            // handle only complete events
+            if (changedProps.status !== "complete") {
+                return;
+            }
 
-        // handle only complete events
-        if (changedProps.status !== "complete") {
-            return;
-        }
+            chrome.tabs.onUpdated.removeListener(worker._tabLoadedListener);
+            worker._tabLoaded.resolve();
+        },
+        /*
+         * wait for everything to settle
+         */
+        wait: function() {
+            console.log(".. wait")
 
-        chrome.tabs.onUpdated.removeListener(_this.listener);
+            var timeout = $.Deferred();
+            setTimeout(function() {
+                timeout.resolve();
+            }, 1000);
+            return timeout;
+        },
+        /*
+         * make a screenshot (make sure it is of the chosen page) 
+         */
+        makeAndValidateScreenshot: function() {
+            console.log(".. make screenshot and validate");
+            var screenshot = $.Deferred();
 
-        // wait some time to settle things
-        setTimeout(function() {
-
-            chrome.tabs.captureVisibleTab(function(dataUrl) {
-                chrome.tabs.query({active: true, highlighted: true, windowId: currentTab.windowId}, function(tabs) {
+            chrome.tabs.captureVisibleTab(currentTab.windowId, function(dataUrl) {
+                chrome.tabs.query({
+                    active: true,
+                    highlighted: true,
+                    windowId: currentTab.windowId
+                }, function(tabs) {
 
                     if (tabs.length !== 1) {
                         console.log("something weird happened, abort");
@@ -31,47 +62,77 @@ function queryScreenshot(currentTab, url) {
 
                     if (tabs[0].id !== currentTab.id) {
                         console.log("user switched tab, abort");
-                        return
+                        return;
                     }
-                    
+
                     if (tabs[0].url.lastIndexOf("chrome://", 0) === 0) {
                         console.log("user went back to the new tabs page, abort");
                         return;
                     }
 
-                    console.log(tabs)
-
-
-                    console.log(url);
-
-                    var image = new Image();
-                    image.src = dataUrl;
-
-                    image.onload = function() {
-
-                        var scale = 420 / this.width;
-                        var canvas = downScaleImage(this, scale);
-
-                        var clipped = clip(canvas, 420, 75);
-
-                        var o = {};
-                        o[url] = clipped.toDataURL();
-
-                        console.log(clipped);
-//                    console.log(context);
-                        console.log(dataUrl);
-                        console.log(o);
-
-                        chrome.storage.local.set(o, function() {
-                            console.log("screenshot saved");
-                        });
-                    };
+                    screenshot.resolveWith({}, [dataUrl]);
                 });
             });
-        }, 1000);  // setTimeout()
-    };
+            return screenshot;
+        },
+        /*
+         * url -> image object
+         */
+        loadImage: function(src) {
+            console.log(".. load screenshot");
+            var load = $.Deferred();
 
-    chrome.tabs.onUpdated.addListener(listener);
+            var image = new Image();
+            image.src = src;
+            image.onload = function() {
+                load.resolve(image, [image]);
+            };
+
+            return load;
+        },
+        processScreenshot: function(image) {
+            console.log(".. process screenshot");
+
+            var scale = 420 / image.width;
+            var canvas = downScaleImage(image, scale);
+            var clipped = clip(canvas, 420, 75);
+
+            return {
+                screenshot: clipped.toDataURL()
+            };
+        },
+        processFavicon: function() {
+            console.log(".. process favion");
+            return "favicon";
+        },
+        storeInfo: function(screenshot, favicon) {
+            console.log(".. store Info")
+            console.log(screenshot, favicon)
+
+//            chrome.storage.local.set(o, function() {
+//                console.log("screenshot saved");
+//            });
+
+        }
+
+    }
+
+    worker.tabLoaded()
+            .then(worker.wait)
+            .then(worker.makeAndValidateScreenshot)
+            .then(function(screenshotUrl) {
+
+                var processScreenshot = worker
+                        .loadImage(screenshotUrl)
+                        .then(worker.processScreenshot);
+
+                var processFavicon = worker
+                        .loadImage("chrome://favicon/" + url)
+                        .then(worker.processFavicon);
+
+                $.when(processFavicon, processScreenshot)
+                        .then(worker.storeInfo);
+            });
 }
 
 
@@ -79,7 +140,6 @@ function clip(canvas, width, height) {
     var clipped = document.createElement('canvas');
     clipped.width = width;
     clipped.height = height;
-
     var clippedContext = clipped.getContext('2d');
     clippedContext.drawImage(canvas, 0, 0)
 
@@ -129,8 +189,8 @@ function downScaleCanvas(cv, scale) {
 
     for (sy = 0; sy < sh; sy++) {
         ty = sy * scale; // y src position within target
-        tY = 0 | ty;     // rounded : target pixel's y
-        yIndex = 3 * tY * tw;  // line index within target array
+        tY = 0 | ty; // rounded : target pixel's y
+        yIndex = 3 * tY * tw; // line index within target array
         crossY = (tY != (0 | ty + scale));
         if (crossY) { // if pixel is crossing botton target pixel
             wy = (tY + 1 - ty); // weight of point within target pixel
@@ -138,17 +198,16 @@ function downScaleCanvas(cv, scale) {
         }
         for (sx = 0; sx < sw; sx++, sIndex += 4) {
             tx = sx * scale; // x src position within target
-            tX = 0 | tx;    // rounded : target pixel's x
+            tX = 0 | tx; // rounded : target pixel's x
             tIndex = yIndex + tX * 3; // target pixel index within target array
             crossX = (tX != (0 | tx + scale));
             if (crossX) { // if pixel is crossing target pixel's right
                 wx = (tX + 1 - tx); // weight of point within target pixel
                 nwx = (tx + scale - tX - 1); // ... within x+1 target pixel
             }
-            sR = sBuffer[sIndex    ];   // retrieving r,g,b for curr src px.
+            sR = sBuffer[sIndex    ]; // retrieving r,g,b for curr src px.
             sG = sBuffer[sIndex + 1];
             sB = sBuffer[sIndex + 2];
-
             /* !! untested : handling alpha !!
              sA = sBuffer[sIndex + 3];
              if (!sA) continue;
@@ -159,7 +218,7 @@ function downScaleCanvas(cv, scale) {
              }
              */
             if (!crossX && !crossY) { // pixel does not cross
-                // just add components weighted by squared scale.
+// just add components weighted by squared scale.
                 tBuffer[tIndex    ] += sR * sqScale;
                 tBuffer[tIndex + 1] += sG * sqScale;
                 tBuffer[tIndex + 2] += sB * sqScale;
@@ -186,7 +245,7 @@ function downScaleCanvas(cv, scale) {
                 tBuffer[tIndex + 3 * tw + 1] += sG * nw;
                 tBuffer[tIndex + 3 * tw + 2] += sB * nw;
             } else { // crosses both x and y : four target points involved
-                // add weighted component for current px
+// add weighted component for current px
                 w = wx * wy;
                 tBuffer[tIndex    ] += sR * w;
                 tBuffer[tIndex + 1] += sG * w;
@@ -210,7 +269,7 @@ function downScaleCanvas(cv, scale) {
         } // end for sx 
     } // end for sy
 
-    // create result canvas
+// create result canvas
     var resCV = document.createElement('canvas');
     resCV.width = tw;
     resCV.height = th;
@@ -225,7 +284,7 @@ function downScaleCanvas(cv, scale) {
         tByteBuffer[tIndex + 2] = Math.ceil(tBuffer[sIndex + 2]);
         tByteBuffer[tIndex + 3] = 255;
     }
-    // writing result to canvas.
+// writing result to canvas.
     resCtx.putImageData(imgRes, 0, 0);
     return resCV;
 }
