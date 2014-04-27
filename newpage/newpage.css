@@ -2,6 +2,11 @@
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+body {
+    background-image: url("backdrop.png");
+    background-position: center center;
+}
+
 .elem {
     width: 420px;
     height: 75px;
@@ -35,7 +40,7 @@
 
     padding: 0px 5px;
 
-    border-bottom: 2px solid lightgrey;
+    border-bottom: 4px solid lightgrey;
 
     color: black;
 

@@ -117,9 +117,11 @@ function queryScreenshot(currentTab, url) {
                 //this.brightness(25);
                 //this.sepia(25);
                 
-                this.saturation(-25);
+                this.saturation(-50);
                 this.contrast(-15);
                 //this.exposure(25);
+                
+                //this.greyscale()
                 
                 this.render(function() {
                     process.resolveWith(clipped, [cloned, clipped]);
