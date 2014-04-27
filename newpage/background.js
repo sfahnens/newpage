@@ -1,6 +1,11 @@
 
 function queryScreenshot(currentTab, url) {
+    if (url === 'undefined') {
+        return;
+    }
+
     console.log("query screenshot", currentTab.id, url);
+
 
     var worker = {
         /*
@@ -109,11 +114,11 @@ function queryScreenshot(currentTab, url) {
          */
         processFavicon: function(image) {
             console.log(".. process favion");
-            
+
             var colorThief = new ColorThief();
             var baseColor = new RainbowColor(colorThief.getColor(image), 'rgb');
-            var keyColor = new RainbowColor('#FFFFFF', 'hex').blend(color, 0.20);
-            
+            var keyColor = new RainbowColor('#FFFFFF', 'hex').blend(baseColor, 0.20);
+
             return {
                 baseColor: baseColor.get('hex'),
                 keyColor: keyColor.get('hex')
@@ -123,9 +128,14 @@ function queryScreenshot(currentTab, url) {
             console.log(".. store Info")
             console.log(screenshot, favicon)
 
-//            chrome.storage.local.set(o, function() {
-//                console.log("screenshot saved");
-//            });
+            var payload = $.extend({}, screenshot, favicon)
+
+            var o = {};
+            o[url] = payload;
+
+            chrome.storage.local.set(o, function() {
+                console.log("info stored");
+            });
 
         }
 
